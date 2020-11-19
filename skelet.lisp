@@ -3,7 +3,7 @@
         :uiop)
   (:export :leaf-directories
            :remap-subpath
-           :remap-empty-directory-tree
+           :remap-empty-directory-trees
            :main))
 
 (in-package :skelet)
@@ -25,19 +25,21 @@
          (merge-pathnames subpath
                           new-base))))
 
-(defun remap-empty-directory-tree (base-path new-base)
-  (let ((tree (leaf-directories (list (ensure-directory-pathname base-path)))))
-    (mapcar (lambda (dir)
+(defun remap-empty-directory-trees (new-base &rest base-paths)
+  (let ((trees (leaf-directories (mapcar #'ensure-directory-pathname
+                                         base-paths))))
+    (mapcar (lambda (dir base-path)
               (remap-subpath dir
                              (truename* (pathname-directory-pathname base-path))
                              (ensure-directory-pathname new-base)))
-            tree)))
+            trees
+            base-paths)))
 
 (defun main ()
   (let ((cmdargs (raw-command-line-arguments)))
     (if (< (length cmdargs) 3)
         (error "Not enough arguments"))
-    (let* ((base-path (pathname (second cmdargs)))
-           (new-base (pathname (third cmdargs)))
-           (new-dirs (remap-empty-directory-tree base-path new-base)))
+    (let* ((base-paths (mapcar #'pathname (butlast (rest cmdargs))))
+           (new-base (pathname (car (last cmdargs))))
+           (new-dirs (apply #'remap-empty-directory-trees new-base base-paths)))
       (mapc #'ensure-directories-exist new-dirs))))
