@@ -9,15 +9,17 @@
 (in-package :skelet)
 
 (defun leaf-directories (paths)
-  (if (null paths)
-      nil
-      (let ((subdirs (subdirectories (car paths))))
-        (if (null subdirs)
-            ;; leaf-directory found, collect
-            (cons (car paths)
-                  (leaf-directories (cdr paths)))
-            (leaf-directories (append subdirs
-                                      (cdr paths)))))))
+  (cond
+    ((null paths) nil)
+    ((not (listp paths)) (leaf-directories (list paths)))
+    (t (let ((subdirs (subdirectories (ensure-directory-pathname
+                                       (car paths)))))
+         (if (null subdirs)
+             ;; leaf-directory found, collect
+             (cons (car paths)
+                   (leaf-directories (cdr paths)))
+             (leaf-directories (append subdirs
+                                       (cdr paths))))))))
 
 (defun remap-subpath (maybe-subpath base-path new-base)
   (let ((subpath (subpathp maybe-subpath base-path)))
