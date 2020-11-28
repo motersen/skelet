@@ -12,8 +12,7 @@
   (cond
     ((null paths) nil)
     ((not (listp paths)) (leaf-directories (list paths)))
-    (t (let ((subdirs (subdirectories (ensure-directory-pathname
-                                       (car paths)))))
+    (t (let ((subdirs (subdirectories (car paths))))
          (if (null subdirs)
              ;; leaf-directory found, collect
              (cons (car paths)
