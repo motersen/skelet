@@ -28,14 +28,22 @@
                           new-base))))
 
 (defun remap-empty-directory-trees (new-base &rest base-paths)
-  (let ((trees (leaf-directories (mapcar #'ensure-directory-pathname
-                                         base-paths))))
-    (mapcar (lambda (dir base-path)
-              (remap-subpath dir
-                             (truename* (pathname-directory-pathname base-path))
-                             (ensure-directory-pathname new-base)))
-            trees
-            base-paths)))
+  (let ((trees (mapcar #'leaf-directories base-paths))
+        (new-base (ensure-directory-pathname new-base))
+        (base-paths (mapcar (lambda (path)
+                              (truename*
+                               (pathname-directory-pathname path)))
+                            base-paths)))
+    (flet ((remap-tree (tree base-path)
+             (mapcar (lambda (leafdir)
+                       (remap-subpath leafdir
+                                      base-path
+                                      new-base))
+                     tree)))
+      (apply #'append
+             (mapcar #'remap-tree
+                     trees
+                     base-paths)))))
 
 (defun main ()
   (let ((cmdargs (raw-command-line-arguments)))
