@@ -27,7 +27,11 @@
                           new-base))))
 
 (defun remap-empty-directory-trees (new-base &rest base-paths)
-  (let ((trees (mapcar #'leaf-directories base-paths))
+  (let ((trees (mapcar #'leaf-directories
+                       ;; ensure absolute pathname for subpath comparison
+                       ;; and full directory pathname, don't drop last dir
+                       ;; TODO HANDLE NONEXISTENT DIRS
+                       (mapcar #'truename* base-paths)))
         (new-base (ensure-directory-pathname new-base))
         (base-paths (mapcar (lambda (path)
                               (truename*
